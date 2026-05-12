@@ -72,7 +72,7 @@ defmodule Track.Accounts do
     true = scope.user.is_admin
 
     with {:ok, user = %User{}} <-
-           User.changeset(attrs, scope)
+           User.changeset(%User{}, attrs)
            |> Repo.insert() do
       broadcast_user({:created, user})
       {:ok, user}
