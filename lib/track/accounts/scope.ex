@@ -17,6 +17,7 @@ defmodule Track.Accounts.Scope do
   """
 
   alias Track.Accounts.User
+  alias Track.Repo
 
   defstruct user: nil
 
@@ -26,6 +27,7 @@ defmodule Track.Accounts.Scope do
   Returns nil if no user is given.
   """
   def for_user(%User{} = user) do
+    user = user |> Repo.preload(:last_project)
     %__MODULE__{user: user}
   end
 

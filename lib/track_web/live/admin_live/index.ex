@@ -8,6 +8,7 @@ defmodule TrackWeb.AdminLive.Index do
       <div class="flex flex-row gap-2">
         <.button navigate={~p"/admin/users"}>User management</.button>
         <.button navigate={~p"/admin/projects"}>Project management</.button>
+        <.button navigate={~p"/admin/entries"}>Entry management</.button>
       </div>
     </Layouts.app>
     """

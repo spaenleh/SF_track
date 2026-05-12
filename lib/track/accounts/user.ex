@@ -10,6 +10,7 @@ defmodule Track.Accounts.User do
     field :confirmed_at, :utc_datetime
     field :authenticated_at, :utc_datetime, virtual: true
     field :is_admin, :boolean, default: false
+    belongs_to :last_project, Track.Time.Project
 
     timestamps(type: :utc_datetime)
   end
@@ -38,7 +39,7 @@ defmodule Track.Accounts.User do
 
   def changeset(user, attrs) do
     user
-    |> cast(attrs, [:name, :email, :is_admin])
+    |> cast(attrs, [:name, :email, :is_admin, :last_project_id])
     |> validate_format(:email, ~r/^[^@,;\s]+@[^@,;\s]+$/,
       message: "must have the @ sign and no spaces"
     )
