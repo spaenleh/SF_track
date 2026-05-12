@@ -1,18 +1,6 @@
 <Layouts.flash_group flash={@flash} />
-
 <div class="p-4">
   <div class="mx-auto max-w-xl">
-    <.icon name="hero-clock" class="size-8 bg-primary" />
-    <div class="mt-10 flex justify-between items-center">
-      <h1 class="flex items-center text-sm font-semibold leading-6">
-        Time tracker
-      </h1>
-    </div>
-
-    <p class="text-[2rem] mt-4 font-semibold leading-10 tracking-tighter text-balance">
-      A time tracker for teams.
-    </p>
-
     <%= if @current_scope do %>
       <div class="flex flex-col gap-4 justify-center items-center mt-8 max-w-xl">
         <span class="text-xl font-semibold">Welcome {@current_scope.user.name}, </span>
@@ -29,6 +17,16 @@
           </.button>
         <% end %>
       </div>
+    <% else %>
+      <.icon name="hero-clock" class="size-8 bg-primary" />
+      <div class="mt-10 flex justify-between items-center">
+        <h1 class="flex items-center text-sm font-semibold leading-6">
+          Time tracker
+        </h1>
+      </div>
+      <p class="text-[2rem] mt-4 font-semibold leading-10 tracking-tighter text-balance">
+        A time tracker for teams.
+      </p>
     <% end %>
   </div>
 </div>

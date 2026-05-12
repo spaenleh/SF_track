@@ -22,7 +22,9 @@ defmodule TrackWeb.EntryLive.Index do
         row_click={fn {_id, entry} -> JS.navigate(~p"/entries/#{entry}") end}
       >
         <:col :let={{_id, entry}} label="Date">{entry.date}</:col>
-        <:col :let={{_id, entry}} label="Time spent">{entry.time_spent}</:col>
+        <:col :let={{_id, entry}} label="Time spent">
+          {entry.time_spent |> Time.format_time_spent()}
+        </:col>
         <:col :let={{_id, entry}} label="Project">{entry.project.name}</:col>
         <:col :let={{_id, entry}} label="Comment">{entry.comment}</:col>
         <:action :let={{_id, entry}}>
@@ -41,7 +43,7 @@ defmodule TrackWeb.EntryLive.Index do
         </:action>
       </.table>
 
-      <span class="mt-6">Your total time: {@total_time}</span>
+      <span class="mt-6">Your total time: {@total_time |> Time.format_time_spent()}</span>
     </Layouts.app>
     """
   end

@@ -42,15 +42,17 @@ defmodule TrackWeb.Layouts do
           <span class="text-sm font-semibold">Time Tracker</span>
         </a>
       </div>
-      <%!-- <div class="flex-none">
-        <ul class="flex flex-column px-1 space-x-4 items-center">
-          <li>
-            <a href="https://hexdocs.pm/phoenix/overview.html" class="btn btn-primary">
-              Get Started <span aria-hidden="true">&rarr;</span>
-            </a>
-          </li>
-        </ul>
-      </div> --%>
+      <%= if @current_scope do %>
+        <div class="flex-none">
+          <ul class="flex flex-column px-1 space-x-4 items-center">
+            <li>
+              <.button variant="primary" navigate={~p"/track"}>
+                <.icon name="hero-clock" class="size-5" /> Track
+              </.button>
+            </li>
+          </ul>
+        </div>
+      <% end %>
     </header>
 
     <main class="px-4 py-20 sm:px-6 lg:px-8">

@@ -3,6 +3,7 @@ defmodule TrackWeb.EntryLive.Form do
 
   alias Track.Time
   alias Track.Time.Entry
+  alias Track.TimeConversions
 
   @impl true
   def render(assigns) do
@@ -10,23 +11,21 @@ defmodule TrackWeb.EntryLive.Form do
     <Layouts.app flash={@flash} current_scope={@current_scope}>
       <.header>
         {@page_title}
-        <:subtitle>Use this form to manage entry records in your database.</:subtitle>
       </.header>
 
       <.form for={@form} id="entry-form" phx-change="validate" phx-submit="save">
         <.input field={@form[:date]} type="date" label="Date" phx-mounted={JS.focus()}>
-          <.button type="button" class="btn btn-primary btn-soft mb-2 pb-1" phx-click="set_yesterday">
-            -
+          <.button type="button" phx-click="set_yesterday">
+            Yesterday
           </.button>
         </.input>
         <.input field={@form[:project_id]} type="select" label="Project" options={@projects} />
         <.input
-          field={@form[:time_spent]}
+          field={@form[:time_spent_input]}
           type="text"
           label="Time spent"
           phx-blur="format_time_spent"
         />
-        <span>{@formatted_time}</span>
         <.input field={@form[:comment]} type="text" label="Comment" />
         <footer>
           <.button phx-disable-with="Saving..." variant="primary">Save Entry</.button>
@@ -46,7 +45,6 @@ defmodule TrackWeb.EntryLive.Form do
      socket
      |> assign(:return_to, return_to(params["return_to"]))
      |> assign(:projects, projects)
-     |> assign(:formatted_time, "")
      |> apply_action(socket.assigns.live_action, params)}
   end
 
@@ -55,12 +53,19 @@ defmodule TrackWeb.EntryLive.Form do
 
   defp apply_action(socket, :edit, %{"id" => id}) do
     entry = Time.get_entry!(socket.assigns.current_scope, id)
+    formatted = Track.TimeConversions.format_minutes(entry.time_spent)
 
     socket
-    |> assign(:page_title, "Edit Entry")
+    |> assign(:page_title, "Edit time tracking entry")
     |> assign(:entry, entry)
-    |> assign(:formatted_time, entry.time_spent |> Track.Time.format_time_spent())
-    |> assign(:form, to_form(Time.change_entry(socket.assigns.current_scope, entry)))
+    |> assign(
+      :form,
+      to_form(
+        Time.change_entry(socket.assigns.current_scope, entry, %{
+          "time_spent_input" => formatted
+        })
+      )
+    )
   end
 
   defp apply_action(socket, :new, _params) do
@@ -72,9 +77,8 @@ defmodule TrackWeb.EntryLive.Form do
     }
 
     socket
-    |> assign(:page_title, "New Entry")
+    |> assign(:page_title, "New time tracking entry")
     |> assign(:entry, entry)
-    |> assign(:formatted_time, "")
     |> assign(:form, to_form(Time.change_entry(socket.assigns.current_scope, entry)))
   end
 
@@ -94,13 +98,25 @@ defmodule TrackWeb.EntryLive.Form do
     {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
   end
 
-  def handle_event("format_time_spent", %{"value" => value}, socket) do
-    formatted_time = value |> Track.Time.format_time_spent()
+  def handle_event("format_time_spent", %{"value" => ""}, socket) do
+    changeset =
+      socket.assigns.form.source
+      |> Ecto.Changeset.put_change(:time_spent_input, "")
+      |> Ecto.Changeset.put_change(:time_spent, nil)
 
-    {:noreply,
-     assign(socket,
-       formatted_time: formatted_time
-     )}
+    {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
+  end
+
+  def handle_event("format_time_spent", %{"value" => value}, socket) do
+    minutes = TimeConversions.to_minutes(value)
+    formatted = TimeConversions.format_minutes(minutes)
+
+    changeset =
+      socket.assigns.form.source
+      |> Ecto.Changeset.put_change(:time_spent_input, formatted)
+      |> Ecto.Changeset.put_change(:time_spent, minutes)
+
+    {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
   end
 
   def handle_event("save", %{"entry" => entry_params}, socket) do
