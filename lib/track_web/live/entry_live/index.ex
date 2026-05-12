@@ -16,6 +16,17 @@ defmodule TrackWeb.EntryLive.Index do
         </:actions>
       </.header>
 
+      <Flop.Phoenix.table items={@entries} meta={@meta} path="/entries">
+        <:col :let={entry} label="Date" field={:date}>{entry.date}</:col>
+        <:col :let={entry} label="Time spent" field={:time_spent}>
+          {entry.time_spent |> Time.format_time_spent()}
+        </:col>
+        <%!-- <:col :let={entry} label="Project" field={:project}>{entry.project.name}</:col> --%>
+        <:col :let={entry} label="Comment" field={:comment}>{entry.comment}</:col>
+      </Flop.Phoenix.table>
+
+      <Flop.Phoenix.pagination meta={@meta} path={~p"/entries"} />
+
       <.table
         id="entries"
         rows={@streams.entries}
@@ -59,6 +70,12 @@ defmodule TrackWeb.EntryLive.Index do
      |> assign(:page_title, "Listing Entries")
      |> assign(:total_time, Time.get_user_total(socket.assigns.current_scope))
      |> stream(:entries, list_entries(socket.assigns.current_scope))}
+  end
+
+  @impl true
+  def handle_params(params, _, socket) do
+    {entries, meta} = Time.list_entries(socket.assigns.current_scope, params)
+    {:noreply, assign(socket, entries: entries, meta: meta)}
   end
 
   @impl true

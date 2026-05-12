@@ -175,17 +175,17 @@ defmodule Track.Time do
     Phoenix.PubSub.broadcast(Track.PubSub, "entries", message)
   end
 
-  @doc """
-  Returns the list of entries.
-
-  ## Examples
-
-      iex> list_entries(scope)
-      [%Entry{}, ...]
-
-  """
   def list_entries(%Scope{} = scope) do
     Repo.all_by(Entry, user_id: scope.user.id) |> Repo.preload(:project)
+  end
+
+  @doc """
+  Lists entries with Flop filtering, sorting, and pagination.
+  """
+  def list_entries(%Scope{} = scope, params) do
+    Entry
+    |> where([e], e.user_id == ^scope.user.id)
+    |> Flop.validate_and_run!(params, for: Entry, replace_invalid_params: true)
   end
 
   def list_all_entries(%Scope{} = scope) do
