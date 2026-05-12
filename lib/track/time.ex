@@ -164,10 +164,15 @@ defmodule Track.Time do
     Phoenix.PubSub.subscribe(Track.PubSub, "user:#{key}:entries")
   end
 
+  def subscribe_entries_admin() do
+    Phoenix.PubSub.subscribe(Track.PubSub, "entries")
+  end
+
   defp broadcast_entry(%Scope{} = scope, message) do
     key = scope.user.id
 
     Phoenix.PubSub.broadcast(Track.PubSub, "user:#{key}:entries", message)
+    Phoenix.PubSub.broadcast(Track.PubSub, "entries", message)
   end
 
   @doc """
@@ -181,6 +186,11 @@ defmodule Track.Time do
   """
   def list_entries(%Scope{} = scope) do
     Repo.all_by(Entry, user_id: scope.user.id) |> Repo.preload(:project)
+  end
+
+  def list_all_entries(%Scope{} = scope) do
+    true = scope.user.is_admin
+    Repo.all(Entry) |> Repo.preload(:project) |> Repo.preload(:user)
   end
 
   @doc """
@@ -290,7 +300,13 @@ defmodule Track.Time do
     query = from e in Entry, where: [user_id: ^scope.user.id]
 
     Repo.aggregate(query, :sum, :time_spent)
-    |> IO.inspect(label: "result")
+  end
+
+  def get_overall_total(%Scope{} = scope) do
+    true = scope.user.is_admin
+
+    query = from(e in Entry)
+    Repo.aggregate(query, :sum, :time_spent)
   end
 
   def time_to_minutes(<<_h1, _h2, ?:, _m1, _m2>> = time) do

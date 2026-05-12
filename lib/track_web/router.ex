@@ -95,6 +95,12 @@ defmodule TrackWeb.Router do
         live "/:id", Show, :show
         live "/:id/edit", Form, :edit
       end
+
+      scope "/entries", EntryLive do
+        live "/", AdminIndex, :index
+        # live "/:id", Show, :show
+        # live "/:id/edit", Form, :edit
+      end
     end
   end
 
