@@ -193,6 +193,11 @@ defmodule Track.Time do
     Repo.all(Entry) |> Repo.preload(:project) |> Repo.preload(:user)
   end
 
+  def list_all_entries(%Scope{} = scope, user_id) do
+    true = scope.user.is_admin
+    Repo.all_by(Entry, user_id: user_id) |> Repo.preload(:project) |> Repo.preload(:user)
+  end
+
   @doc """
   Gets a single entry.
 
