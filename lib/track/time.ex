@@ -198,6 +198,10 @@ defmodule Track.Time do
     Repo.all_by(Entry, user_id: user_id) |> Repo.preload(:project) |> Repo.preload(:user)
   end
 
+  def list_all_entries_for_project(%Scope{} = scope, project_id) do
+    Repo.all_by(Entry, user_id: scope.user.id, project_id: project_id) |> Repo.preload(:project)
+  end
+
   @doc """
   Gets a single entry.
 
@@ -301,6 +305,12 @@ defmodule Track.Time do
 
   def get_user_total(%Scope{} = scope) do
     query = from e in Entry, where: [user_id: ^scope.user.id]
+
+    Repo.aggregate(query, :sum, :time_spent)
+  end
+
+  def get_user_total(%Scope{} = scope, project_id) do
+    query = from e in Entry, where: [user_id: ^scope.user.id, project_id: ^project_id]
 
     Repo.aggregate(query, :sum, :time_spent)
   end
