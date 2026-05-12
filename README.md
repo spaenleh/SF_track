@@ -2,6 +2,12 @@
 
 A time tracker for busy teams.
 
+![main page](screenshots/main_page.png)
+
+Admin view:
+
+![admin page](screenshots/admin_page.png)
+
 ## Getting Started
 
 You will need `mise` to install the tools.
