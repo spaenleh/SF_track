@@ -49,13 +49,34 @@ defmodule Track.Accounts do
   def update_user(%Scope{} = scope, %User{} = user, attrs \\ %{}) do
     true = scope.user.is_admin
 
-    user =
-      user
-      |> User.changeset(attrs)
-      |> Repo.update()
+    with {:ok, user = %User{}} <-
+           user
+           |> User.changeset(attrs)
+           |> Repo.update() do
+      broadcast_user({:updated, user})
+      {:ok, user}
+    end
+  end
 
-    broadcast_user({:updated, user})
-    {:ok, user}
+  def delete_user(%Scope{} = scope, %User{} = user) do
+    true = scope.user.is_admin
+
+    with {:ok, user = %User{}} <-
+           Repo.delete(user) do
+      broadcast_user({:deleted, user})
+      {:ok, user}
+    end
+  end
+
+  def create_user(%Scope{} = scope, attrs \\ %{}) do
+    true = scope.user.is_admin
+
+    with {:ok, user = %User{}} <-
+           User.changeset(attrs, scope)
+           |> Repo.insert() do
+      broadcast_user({:created, user})
+      {:ok, user}
+    end
   end
 
   ## Database getters

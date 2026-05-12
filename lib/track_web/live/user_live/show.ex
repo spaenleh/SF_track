@@ -56,7 +56,7 @@ defmodule TrackWeb.UserLive.Show do
     {:noreply,
      socket
      |> put_flash(:error, "The current user was deleted.")
-     |> push_navigate(to: ~p"/users")}
+     |> push_navigate(to: ~p"/admin/users")}
   end
 
   def handle_info({type, %Track.Accounts.User{}}, socket)
