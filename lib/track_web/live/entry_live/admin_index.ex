@@ -2,6 +2,7 @@ defmodule TrackWeb.EntryLive.AdminIndex do
   use TrackWeb, :live_view
 
   alias Track.Time
+  alias Track.Accounts.Scope
 
   @impl true
   def render(assigns) do
@@ -15,6 +16,10 @@ defmodule TrackWeb.EntryLive.AdminIndex do
           </.button>
         </:actions>
       </.header>
+
+      <.form for={@form} id="entries-form" phx-change="filter_user">
+        <.input field={@form[:user_id]} type="select" label="Filter by user" options={@employees} />
+      </.form>
 
       <.table
         id="entries"
@@ -43,8 +48,13 @@ defmodule TrackWeb.EntryLive.AdminIndex do
           </.link>
         </:action>
       </.table>
-
-      <span class="mt-6">Total time: {@total_time |> Time.format_time_spent()}</span>
+      <span class="mt-6">
+        <%= if @filtered_user_id != "" do %>
+          Time for user: {@total_time |> Time.format_time_spent()}
+        <% else %>
+          Total time: {@total_time |> Time.format_time_spent()}
+        <% end %>
+      </span>
     </Layouts.app>
     """
   end
@@ -55,11 +65,17 @@ defmodule TrackWeb.EntryLive.AdminIndex do
       Time.subscribe_entries_admin()
     end
 
+    employees =
+      Track.Accounts.list_users(socket.assigns.current_scope) |> Enum.map(&{&1.name, &1.id})
+
     {:ok,
      socket
      |> assign(:page_title, "Listing All Entries")
      |> assign(:total_time, Time.get_overall_total(socket.assigns.current_scope))
-     |> stream(:entries, list_entries(socket.assigns.current_scope))}
+     |> assign(:filtered_user_id, "")
+     |> assign(:form, to_form(%{user_id: nil}))
+     |> assign(:employees, [{"Select someone", nil} | employees])
+     |> stream(:entries, list_entries(socket.assigns.current_scope, ""))}
   end
 
   @impl true
@@ -71,12 +87,42 @@ defmodule TrackWeb.EntryLive.AdminIndex do
   end
 
   @impl true
-  def handle_info({type, %Track.Time.Entry{}}, socket)
-      when type in [:created, :updated, :deleted] do
-    {:noreply, stream(socket, :entries, list_entries(socket.assigns.current_scope), reset: true)}
+  def handle_event("filter_user", %{"user_id" => user_id}, socket) do
+    entries =
+      list_entries(socket.assigns.current_scope, user_id)
+
+    total_time =
+      case user_id do
+        "" -> Time.get_overall_total(socket.assigns.current_scope)
+        _ -> Time.get_user_total(%Scope{user: %{id: user_id}})
+      end
+
+    {:noreply,
+     socket
+     |> assign(:filtered_user_id, user_id)
+     |> assign(:form, to_form(%{user_id: user_id}))
+     |> assign(:total_time, total_time)
+     |> stream(:entries, entries, reset: true)}
   end
 
-  defp list_entries(current_scope) do
-    Time.list_all_entries(current_scope)
+  @impl true
+  def handle_info({type, %Track.Time.Entry{}}, socket)
+      when type in [:created, :updated, :deleted] do
+    entries = list_entries(socket.assigns.current_scope, socket.assigns.filtered_user_id)
+
+    {:noreply,
+     stream(
+       socket,
+       :entries,
+       entries,
+       reset: true
+     )}
+  end
+
+  defp list_entries(current_scope, user_id) do
+    case user_id do
+      "" -> Time.list_all_entries(current_scope)
+      _ -> Time.list_all_entries(current_scope, user_id)
+    end
   end
 end
