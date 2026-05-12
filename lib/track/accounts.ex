@@ -79,6 +79,16 @@ defmodule Track.Accounts do
     end
   end
 
+  def save_project_preference(%Scope{} = scope, project_id) do
+    with {:ok, user} <-
+           scope.user
+           |> User.changeset(%{last_project_id: project_id})
+           |> Repo.update() do
+      broadcast_user({:updated, user})
+      {:ok, user}
+    end
+  end
+
   ## Database getters
 
   @doc """
@@ -146,12 +156,13 @@ defmodule Track.Accounts do
 
   """
   def register_user(attrs) do
-    user =
-      %User{}
-      |> User.register_changeset(attrs)
-      |> Repo.insert()
-
-    broadcast_user({:created, user})
+    with {:ok, user} <-
+           %User{}
+           |> User.register_changeset(attrs)
+           |> Repo.insert() do
+      broadcast_user({:created, user})
+      {:ok, user}
+    end
   end
 
   ## Settings

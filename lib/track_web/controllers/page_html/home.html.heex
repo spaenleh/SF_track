@@ -17,9 +17,10 @@
       <div class="flex flex-col gap-4 justify-center items-center mt-8 max-w-xl">
         <span class="text-xl font-semibold">Welcome {@current_scope.user.name}, </span>
 
-        <.button navigate={~p"/track"}>Start tracking</.button>
+        <.button navigate={~p"/track"}><.icon name="hero-clock" class="size-5" />Start tracking</.button>
+        <.button navigate={~p"/entries"}><.icon name="hero-calendar" class="size-5" />View your entries</.button>
         <%= if @current_scope.user.is_admin do %>
-          <.button navigate={~p"/admin"}>Admin Panel</.button>
+          <.button navigate={~p"/admin"}><.icon name="hero-shield-check" class="size-5" />Admin Panel</.button>
         <% end %>
       </div>
     <% end %>

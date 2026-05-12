@@ -167,6 +167,8 @@ defmodule TrackWeb.CoreComponents do
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
                 multiple pattern placeholder readonly required rows size step)
 
+  slot :inner_block
+
   def input(%{field: %Phoenix.HTML.FormField{} = field} = assigns) do
     errors = if Phoenix.Component.used_input?(field), do: field.errors, else: []
 
@@ -263,6 +265,7 @@ defmodule TrackWeb.CoreComponents do
           ]}
           {@rest}
         />
+        {render_slot(@inner_block)}
       </label>
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
