@@ -7,9 +7,55 @@ defmodule Track.Accounts do
   alias Track.Repo
 
   alias Track.Accounts.{User, UserToken, UserNotifier}
+  alias Track.Accounts.Scope
 
-  def list_users do
+  @doc """
+  Subscribes to scoped notifications about any user changes.
+
+  The broadcasted messages match the pattern:
+
+    * {:created, %User{}}
+    * {:updated, %User{}}
+    * {:deleted, %User{}}
+
+  """
+  def subscribe_users(%Scope{} = _scope) do
+    Phoenix.PubSub.subscribe(Track.PubSub, "users")
+  end
+
+  defp broadcast_user(message) do
+    Phoenix.PubSub.broadcast(Track.PubSub, "users", message)
+  end
+
+  def list_users(%Scope{} = scope) do
+    true = scope.user.is_admin
+
     Repo.all(User)
+  end
+
+  def get_user!(%Scope{} = scope, user_id) do
+    true = scope.user.is_admin
+
+    Repo.get!(User, user_id)
+  end
+
+  def change_user(%Scope{} = scope, %User{} = user, attrs \\ %{}) do
+    true = scope.user.is_admin
+
+    user
+    |> User.changeset(attrs)
+  end
+
+  def update_user(%Scope{} = scope, %User{} = user, attrs \\ %{}) do
+    true = scope.user.is_admin
+
+    user =
+      user
+      |> User.changeset(attrs)
+      |> Repo.update()
+
+    broadcast_user({:updated, user})
+    {:ok, user}
   end
 
   ## Database getters
@@ -79,9 +125,12 @@ defmodule Track.Accounts do
 
   """
   def register_user(attrs) do
-    %User{}
-    |> User.register_changeset(attrs)
-    |> Repo.insert()
+    user =
+      %User{}
+      |> User.register_changeset(attrs)
+      |> Repo.insert()
+
+    broadcast_user({:created, user})
   end
 
   ## Settings
@@ -129,6 +178,7 @@ defmodule Track.Accounts do
            {:ok, user} <- Repo.update(User.email_changeset(user, %{email: email})),
            {_count, _result} <-
              Repo.delete_all(from(UserToken, where: [user_id: ^user.id, context: ^context])) do
+        broadcast_user({:updated, user})
         {:ok, user}
       else
         _ -> {:error, :transaction_aborted}
@@ -172,9 +222,12 @@ defmodule Track.Accounts do
   end
 
   def make_admin(%User{} = user) do
-    user
-    |> User.admin_changeset()
-    |> Repo.update!()
+    user =
+      user
+      |> User.admin_changeset()
+      |> Repo.update!()
+
+    broadcast_user({:updated, user})
   end
 
   ## Session
