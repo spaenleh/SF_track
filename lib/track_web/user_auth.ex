@@ -233,12 +233,16 @@ defmodule TrackWeb.UserAuth do
   def on_mount(:require_admin, _params, session, socket) do
     socket = mount_current_scope(socket, session)
 
-    if socket.assigns.current_scope && socket.assigns.current_scope.user && socket.assigns.current_scope.user.is_admin == true do
+    if socket.assigns.current_scope && socket.assigns.current_scope.user &&
+         socket.assigns.current_scope.user.is_admin == true do
       {:cont, socket}
     else
       socket =
         socket
-        |> Phoenix.LiveView.put_flash(:error, "You are not an admin. You can not access this page.")
+        |> Phoenix.LiveView.put_flash(
+          :error,
+          "You are not an admin. You can not access this page."
+        )
         |> Phoenix.LiveView.redirect(to: ~p"/")
 
       {:halt, socket}
@@ -298,7 +302,8 @@ defmodule TrackWeb.UserAuth do
   Plug for routes that require the user to be an admin.
   """
   def require_admin(conn, _opts) do
-    if conn.assigns.current_scope && conn.assigns.current_scope.user && conn.assigns.current_scope.user.is_admin == true do
+    if conn.assigns.current_scope && conn.assigns.current_scope.user &&
+         conn.assigns.current_scope.user.is_admin == true do
       conn
     else
       conn

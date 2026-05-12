@@ -72,11 +72,21 @@ defmodule TrackWeb.Router do
         {TrackWeb.UserAuth, :require_authenticated},
         {TrackWeb.UserAuth, :require_admin}
       ] do
-        live "/", AdminLive.Index, :index
-      live "/users", UserLive.Index, :index
-      live "/users/new", UserLive.Form, :new
-      live "/users/:id", UserLive.Show, :show
-      live "/users/:id/edit", UserLive.Form, :edit
+      live "/", AdminLive.Index, :index
+
+      scope "/users", UserLive do
+        live "/", Index, :index
+        live "/new", Form, :new
+        live "/:id", Show, :show
+        live "/:id/edit", Form, :edit
+      end
+
+      scope "/projects", ProjectLive do
+        live "/", Index, :index
+        live "/new", Form, :new
+        live "/:id", Show, :show
+        live "/:id/edit", Form, :edit
+      end
     end
   end
 

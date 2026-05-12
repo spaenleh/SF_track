@@ -10,6 +10,9 @@ defmodule TrackWeb.UserLive.Index do
       <.header>
         Listing Users
         <:actions>
+          <.button navigate={~p"/admin"}>
+            <.icon name="hero-arrow-left" />
+          </.button>
           <.button variant="primary" navigate={~p"/admin/users/new"}>
             <.icon name="hero-plus" /> New User
           </.button>
