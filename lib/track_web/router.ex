@@ -13,6 +13,10 @@ defmodule TrackWeb.Router do
     plug :fetch_current_scope_for_user
   end
 
+  pipeline :admin do
+    plug :require_admin
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
   end
@@ -57,6 +61,23 @@ defmodule TrackWeb.Router do
     end
 
     post "/users/update-password", UserSessionController, :update_password
+  end
+
+  # Admin routes
+  scope "/admin", TrackWeb do
+    pipe_through [:browser, :require_authenticated_user, :admin]
+
+    live_session :admin,
+      on_mount: [
+        {TrackWeb.UserAuth, :require_authenticated},
+        {TrackWeb.UserAuth, :require_admin}
+      ] do
+        live "/", AdminLive.Index, :index
+      live "/users", UserLive.Index, :index
+      live "/users/new", UserLive.Form, :new
+      live "/users/:id", UserLive.Show, :show
+      live "/users/:id/edit", UserLive.Form, :edit
+    end
   end
 
   scope "/", TrackWeb do

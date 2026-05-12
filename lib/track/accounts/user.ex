@@ -36,6 +36,16 @@ defmodule Track.Accounts.User do
     |> cast(%{is_admin: true}, [:is_admin])
   end
 
+  def changeset(user, attrs) do
+    user
+    |> cast(attrs, [:name, :email, :is_admin])
+    |> validate_format(:email, ~r/^[^@,;\s]+@[^@,;\s]+$/,
+      message: "must have the @ sign and no spaces"
+    )
+    |> validate_length(:email, max: 160)
+    |> validate_inclusion(:is_admin, [true, false])
+  end
+
   @doc """
   A user changeset for registering or changing the email.
 
