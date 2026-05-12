@@ -253,8 +253,6 @@ defmodule Track.Time do
   def update_entry(%Scope{} = scope, %Entry{} = entry, attrs) do
     true = entry.user_id == scope.user.id
 
-    attrs = Map.put(attrs, :time_spent, time_to_minutes(attrs[:time_spent]))
-
     with {:ok, entry = %Entry{}} <-
            entry
            |> Entry.changeset(attrs, scope)
@@ -314,34 +312,11 @@ defmodule Track.Time do
     Repo.aggregate(query, :sum, :time_spent)
   end
 
-  def time_to_minutes(<<_h1, _h2, ?:, _m1, _m2>> = time) do
-    [hours, minutes] = time |> String.split(":") |> Enum.map(&String.to_integer/1)
-    hours * 60 + minutes
-  end
-
-  def time_to_minutes(time_spent) when is_binary(time_spent) do
-    with {time_number, _} <- Float.parse(time_spent) do
-      case time_number do
-        v when v <= 10 -> floor(v * 60)
-        v when v > 10 -> floor(v)
-      end
-    else
-      _ -> 0
-    end
-  end
-
-  def format_minutes(time_spent) when is_integer(time_spent) do
-    hours = div(time_spent, 60) |> Integer.to_string() |> String.pad_leading(2, "0")
-    minutes = rem(time_spent, 60) |> Integer.to_string() |> String.pad_leading(2, "0")
-
-    "#{hours}:#{minutes}"
-  end
-
   def format_time_spent(time_spent) when is_binary(time_spent) do
-    time_spent |> time_to_minutes() |> format_minutes()
+    time_spent |> Track.TimeConversions.to_minutes() |> Track.TimeConversions.format_minutes()
   end
 
   def format_time_spent(time_spent) do
-    time_spent |> format_minutes()
+    time_spent |> Track.TimeConversions.format_minutes()
   end
 end

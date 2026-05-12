@@ -25,7 +25,7 @@
           setTheme(localStorage.getItem("phx:theme") || "system");
         }
         window.addEventListener("storage", (e) => e.key === "phx:theme" && setTheme(e.newValue || "system"));
-        
+
         window.addEventListener("phx:set-theme", (e) => setTheme(e.target.dataset.phxTheme));
       })();
     </script>
@@ -35,6 +35,9 @@
       <%= if @current_scope do %>
         <li>
           {@current_scope.user.email}
+          <%= if @current_scope.user.is_admin do %>
+            [admin]
+          <% end %>
         </li>
         <li>
           <.link href={~p"/users/settings"}>Settings</.link>
