@@ -24,6 +24,8 @@ config :track,
   ecto_repos: [Track.Repo],
   generators: [timestamp_type: :utc_datetime]
 
+config :flop, repo: Track.Repo
+
 # Configures the endpoint
 config :track, TrackWeb.Endpoint,
   url: [host: "localhost"],

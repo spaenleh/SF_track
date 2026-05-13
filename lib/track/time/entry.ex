@@ -2,6 +2,10 @@ defmodule Track.Time.Entry do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @derive {
+    Flop.Schema,
+    filterable: [:date, :project_id], sortable: [:date, :time_spent]
+  }
   schema "entries" do
     field :date, :date
     field :time_spent, :integer
